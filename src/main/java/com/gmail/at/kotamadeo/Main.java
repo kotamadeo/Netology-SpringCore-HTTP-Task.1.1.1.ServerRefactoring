@@ -1,84 +1,50 @@
 package com.gmail.at.kotamadeo;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
+import com.gmail.at.kotamadeo.server.Server;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.gmail.at.kotamadeo.server.util.ConsoleHelper.sendResponseOk;
+import static com.gmail.at.kotamadeo.server.util.ServerUtil.getAllowedMethods;
+import static com.gmail.at.kotamadeo.server.util.ServerUtil.getValidPaths;
+
 public class Main {
+    private static final List<String> VALID_PATHS = getValidPaths();
+    private static final List<String> ALLOWED_METHODS = getAllowedMethods();
+
     public static void main(String[] args) {
-        final var validPaths = List.of("/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js");
+        Server server = new Server();
+        addSomeHandler(server, "/index.html", "GET");
+        addSomeHandler(server, "/classic.html", "GET");
+        addSomeHandler(server, "/spring.svg", "GET");
+        addSomeHandler(server, "/index.html", "POST");
+        addSomeHandler(server, "/classic.html", "POST");
+        addSomeHandler(server, "/spring.svg", "POST");
+        server.init();
+    }
 
-        try (final var serverSocket = new ServerSocket(9999)) {
-            while (true) {
-                try (
-                        final var socket = serverSocket.accept();
-                        final var in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        final var out = new BufferedOutputStream(socket.getOutputStream());
-                ) {
-                    // read only request line for simplicity
-                    // must be in form GET /path HTTP/1.1
-                    final var requestLine = in.readLine();
-                    final var parts = requestLine.split(" ");
 
-                    if (parts.length != 3) {
-                        // just close socket
-                        continue;
-                    }
-
-                    final var path = parts[1];
-                    if (!validPaths.contains(path)) {
-                        out.write((
-                                "HTTP/1.1 404 Not Found\r\n" +
-                                        "Content-Length: 0\r\n" +
-                                        "Connection: close\r\n" +
-                                        "\r\n"
-                        ).getBytes());
-                        out.flush();
-                        continue;
-                    }
-
-                    final var filePath = Path.of(".", "public", path);
-                    final var mimeType = Files.probeContentType(filePath);
-
-                    // special case for classic
-                    if (path.equals("/classic.html")) {
-                        final var template = Files.readString(filePath);
-                        final var content = template.replace(
-                                "{time}",
-                                LocalDateTime.now().toString()
-                        ).getBytes();
-                        out.write((
-                                "HTTP/1.1 200 OK\r\n" +
-                                        "Content-Type: " + mimeType + "\r\n" +
-                                        "Content-Length: " + content.length + "\r\n" +
-                                        "Connection: close\r\n" +
-                                        "\r\n"
-                        ).getBytes());
-                        out.write(content);
-                        out.flush();
-                        continue;
-                    }
-
-                    final var length = Files.size(filePath);
-                    out.write((
-                            "HTTP/1.1 200 OK\r\n" +
-                                    "Content-Type: " + mimeType + "\r\n" +
-                                    "Content-Length: " + length + "\r\n" +
-                                    "Connection: close\r\n" +
-                                    "\r\n"
-                    ).getBytes());
-                    Files.copy(filePath, out);
-                    out.flush();
-                }
+    private static void addSomeHandler(Server server, String path, String method) {
+        String file = Main.VALID_PATHS.stream().filter(p -> p.equals(path))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+        String allowMethod = Main.ALLOWED_METHODS.stream().filter(m -> m.equals(method))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+        server.addHandler(allowMethod, file, (request, out) -> {
+            try {
+                Path filePath = Path.of("src/main/resources", "/static", request.getPath());
+                String mimeType = Files.probeContentType(filePath);
+                long length = Files.size(filePath);
+                out.write(sendResponseOk(mimeType, length));
+                Files.copy(filePath, out);
+                out.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
     }
 }

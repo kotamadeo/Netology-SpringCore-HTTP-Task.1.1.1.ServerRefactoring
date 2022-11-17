@@ -1,0 +1,5 @@
+server.port=
+server.threadPoolSize=
+server.requestHeaderSize=
+server.methodGet=GET
+server.methodPost=POST
