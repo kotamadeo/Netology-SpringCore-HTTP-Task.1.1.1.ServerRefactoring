@@ -68,7 +68,6 @@ public class Server {
         }
     }
 
-
     public void addHandler(String method, String path, Handler handler) {
         handlers.putIfAbsent(method, new ConcurrentHashMap<>());
         handlers.get(method).put(path, handler);

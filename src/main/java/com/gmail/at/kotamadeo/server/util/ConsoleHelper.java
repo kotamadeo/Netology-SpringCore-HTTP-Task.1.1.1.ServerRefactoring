@@ -33,6 +33,8 @@ public class ConsoleHelper {
                 HTTP/1.1 404 Not Found
                 Content-Length: 0
                 Connection: close
+                
+                
                 """.getBytes(UTF_8);
     }
 
@@ -41,6 +43,8 @@ public class ConsoleHelper {
                 HTTP/1.1 400 Bad Request
                 Content-Length: 0
                 Connection: close
+                
+                
                 """.getBytes(UTF_8);
     }
 }
