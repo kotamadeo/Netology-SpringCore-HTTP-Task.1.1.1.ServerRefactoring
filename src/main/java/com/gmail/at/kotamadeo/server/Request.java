@@ -36,37 +36,6 @@ public class Request {
         this.body = body;
     }
 
-    public List<NameValuePair> getPostParams() {
-        if (!method.equals("POST")) {
-            List<NameValuePair> nameValuePairList = new ArrayList<>();
-            String decodedBody = decode(body, UTF_8);
-            List<String> postParamList = asList(decodedBody.split("&"));
-            postParamList.forEach(o -> {
-                String[] pairElement = o.split("=");
-                if (pairElement.length > 2) return;
-                if (pairElement[0].length() == 0) return;
-                if (pairElement.length == 1) {
-                    nameValuePairList.add(new BasicNameValuePair(pairElement[0], null));
-                    return;
-                }
-                nameValuePairList.add(new BasicNameValuePair(pairElement[0], pairElement[1]));
-            });
-            return nameValuePairList;
-        } else {
-            return emptyList();
-        }
-    }
-
-    public List<NameValuePair> getPostParam(String name) {
-        if (!method.equals("POST")) {
-            return getPostParams().stream()
-                    .filter(o -> o.getName().equals(name))
-                    .toList();
-        } else {
-            return emptyList();
-        }
-    }
-
     public List<NameValuePair> getQueryParams() {
         return parse(uri, UTF_8);
     }
