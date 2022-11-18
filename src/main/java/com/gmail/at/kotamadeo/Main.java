@@ -25,8 +25,7 @@ public class Main {
         addSomeHandler(server, "/spring.svg", "POST");
         server.init();
     }
-
-
+    
     private static void addSomeHandler(Server server, String path, String method) {
         String file = Main.VALID_PATHS.stream().filter(p -> p.equals(path))
                 .findFirst()
