@@ -119,12 +119,12 @@ public class Server {
         String body = null;
         if (!method.equals(getPropertyByKey("server.methodGet"))) {
             in.skip(headersDelimiter.length);
-            Optional<String> contentLength = extractHeader(headers, "Content-Length");
-            if (contentLength.isPresent()) {
-                final var length = parseInt(contentLength.get());
-                final var bodyBytes = in.readNBytes(length);
-                body = new String(bodyBytes);
-            }
+        }
+        Optional<String> contentLength = extractHeader(headers, "Content-Length");
+        if (contentLength.isPresent()) {
+            final int length = parseInt(contentLength.get());
+            final byte[] bodyBytes = in.readNBytes(length);
+            body = new String(bodyBytes);
         }
         Request request = new Request(method, requestTarget, protocol, headers, body);
         String result = """
@@ -132,11 +132,13 @@ public class Server {
                 Query params: %s
                 Query params named "value": %s
                 Query params named: "title": %s
-                """.formatted(
-                request
-                , request.getQueryParams()
-                , request.getQueryParam("value")
-                , request.getQueryParam("title"));
+                """;
+        if (method.equals(getPropertyByKey("server.methodGet"))) {
+            result = result.formatted(
+                    request, request.getQueryParams(), request.getQueryParam("value"), request.getQueryParam("title"));
+        } else {
+            result = result.formatted(request, request.getPostParams(), request.getPostParam("value"), request.getPostParam("title"));
+        }
         System.out.println(result);
         return request;
     }

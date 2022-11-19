@@ -8,3 +8,4 @@
 /classic.html
 /events.html
 /events.js
+/default-get.html

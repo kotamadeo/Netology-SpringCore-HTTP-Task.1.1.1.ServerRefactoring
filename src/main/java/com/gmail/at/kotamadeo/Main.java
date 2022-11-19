@@ -20,9 +20,11 @@ public class Main {
         addSomeHandler(server, "/index.html", "GET");
         addSomeHandler(server, "/classic.html", "GET");
         addSomeHandler(server, "/spring.svg", "GET");
+        addSomeHandler(server, "/default-get.html", "GET");
         addSomeHandler(server, "/index.html", "POST");
         addSomeHandler(server, "/classic.html", "POST");
         addSomeHandler(server, "/spring.svg", "POST");
+        addSomeHandler(server, "/default-get.html", "POST");
         server.init();
     }
     
